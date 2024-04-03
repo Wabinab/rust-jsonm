@@ -814,3 +814,110 @@ fn it_doesnot_pack_very_large_nonscalars() {
     let unpacked: Value = unpacker.unpack(&packed).unwrap();
     assert_eq!(unpacked, input);
 }
+
+// =============================================================
+#[test]
+fn it_will_work_1() {
+    let c = r#"{
+    "name": "First nested project",
+    "description": "v",
+    "t_uuid": "g",
+    "uuid": "h",
+    "t_ver": "2",
+    "pipelines": [
+        [
+            [
+                {
+                "coin": "NEAR",
+                "buy": false,
+                "price": "6",
+                "amt": "25",
+                "price_1": null,
+                "amt_1": null,
+                "pred_prob": "1"
+                },
+                {
+                "coin": "BTC",
+                "buy": true,
+                "price": "35",
+                "amt": "10",
+                "price_1": "0.2",
+                "amt_1": "10",
+                "pred_prob": "1"
+                }
+            ], 
+            [
+                {
+                "coin": "BCH",
+                "buy": true,
+                "price": "21",
+                "amt": "10",
+                "price_1": "80",
+                "amt_1": "10",
+                "pred_prob": "1"
+                }
+            ]
+        ]
+    ]
+    }"#;
+    let old_serde: Value = serde_json::from_str(&c).unwrap();
+
+    let mut packer = Packer::new();
+    let mut unpacker = Unpacker::new();
+    let options = PackOptions::new();
+    let packed = packer.pack(&old_serde, &options).unwrap();
+    let unpacked: Value = unpacker.unpack(&packed).unwrap();
+    assert_eq!(old_serde, unpacked);
+}
+
+#[test]
+fn it_will_work_2() {
+  let c = r#"{
+    "name": "First nested Project",
+    "description": "v",
+    "t_uuid": "g",
+    "uuid": "h",
+    "t_ver": 2,
+    "pipelines": [
+      [
+        [
+          ["NEAR", false, "6", "25.8", "0.2", "0.2", "1"],
+          ["BTC", true, "35", "10", "0.2", "10", "0.85"]
+        ],
+        [
+          ["BCH", true, "21", "10.5", "80", "2.3", "1"]
+        ]
+      ]
+    ]
+  }"#;
+  let old_serde: Value = serde_json::from_str(&c).unwrap();
+
+    let mut packer = Packer::new();
+    let mut unpacker = Unpacker::new();
+    let options = PackOptions::new();
+    let packed = packer.pack(&old_serde, &options).unwrap();
+    let unpacked: Value = unpacker.unpack(&packed).unwrap();
+    assert_eq!(old_serde, unpacked);
+}
+
+#[test]
+fn it_packs_and_unpacks_empty_curly_braces() {
+  let mut packer = Packer::new();
+  let mut unpacker = Unpacker::new();
+  let options = PackOptions::new();
+  let packed = packer.pack(&json!({}), &options).unwrap();
+  let unpacked: Value = unpacker.unpack(&packed).unwrap();
+  // assert_eq!(packed, json!(["foo", "1", 0]));
+  assert_eq!(unpacked, json!({}));
+}
+
+#[test]
+fn it_packs_and_unpacks_empty_array() {
+  let mut packer = Packer::new();
+  let mut unpacker = Unpacker::new();
+  let options = PackOptions::new();
+  let packed = packer.pack(&json!([]), &options).unwrap();
+  let unpacked: Value = unpacker.unpack(&packed).unwrap();
+  // assert_eq!(packed, json!(["foo", "1", 0]));
+  assert_eq!(unpacked, json!([]));
+}

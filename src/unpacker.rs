@@ -19,7 +19,8 @@ const MAX_PACK_COMPLEX_OBJECT_SIZE: usize = 12;
 
 #[derive(Default, Debug)]
 pub struct Unpacker {
-    dict: HashMap<u64, String>,
+    // dict: HashMap<u64, String>,
+    dict: HashMap<u64, Value>,
     dict_index: u64,
     sequence_id: i64,
     max_dict_size: u64,
@@ -150,6 +151,10 @@ impl Unpacker {
             return self.unpack_value(packed_object);
         }
 
+        // if packed_object == &json!([0]) {
+        //     return Ok(json!({}));
+        // }
+
         let packed_array = match packed_object.as_array() {
             Some(packed_array) => packed_array,
             None => {
@@ -159,6 +164,7 @@ impl Unpacker {
             }
         };
 
+        if packed_array.len() == 0 { return Ok(json!({})); }
         let type_value = &packed_array[0];
         let type_id = match type_value.as_i64() {
             Some(i) => i,
@@ -237,7 +243,8 @@ impl Unpacker {
 
         let json_result = json!(result);
         if !contains_unmemoised && packed_array.len() <= MAX_PACK_COMPLEX_OBJECT_SIZE {
-            self.add_to_dict(&json_result.to_string());
+            // self.add_to_dict_str(&json_result.to_string());
+            self.add_to_dict(&json_result);
         }
 
         Ok(json_result)
@@ -254,15 +261,19 @@ impl Unpacker {
                     let string = match self.dict.get(&index) {
                         Some(s) => s,
                         None => {
+                            println!("Wrong Index: {:?}", index);
+                            // println!("Index: {:?}\nDict: {:#?}", index, self.dict);
                             return Err(UnpackerError {
                                 cause: "no stored value".to_owned(),
                             })
+                            // return Ok(json!(null));
                         }
                     };
-                    let json: serde_json::Value = match serde_json::from_str(&string) {
-                        Ok(parsed) => parsed,
-                        Err(_err) => json!(string),
-                    };
+                    let json = string.to_owned();
+                    // let json: serde_json::Value = match serde_json::from_str(&string) {
+                    //     Ok(parsed) => parsed,
+                    //     Err(_err) => json!(string),
+                    // };
 
                     Ok(json)
                 }
@@ -286,7 +297,8 @@ impl Unpacker {
             if re.is_match(string) {
                 let _p: Value = match string.parse::<f64>() {
                     Ok(parse_number) => {
-                        self.add_to_dict(string);
+                        // self.add_to_dict_str(string);
+                        self.add_to_dict(&json!(parse_number));
                         return Ok(json!(parse_number));
                     }
                     Err(_err) => Value::Null,
@@ -297,7 +309,8 @@ impl Unpacker {
             if re.is_match(string) {
                 let _p: Value = match string.parse::<i64>() {
                     Ok(parse_number) => {
-                        self.add_to_dict(string);
+                        // self.add_to_dict_str(string);
+                        self.add_to_dict(&json!(parse_number));
                         return Ok(json!(parse_number));
                     }
                     Err(_err) => Value::Null,
@@ -310,14 +323,27 @@ impl Unpacker {
                 string
             };
 
-            self.add_to_dict(&json!(value).to_string());
+            // self.add_to_dict_str(&json!(value).to_string());
+            self.add_to_dict(&json!(value));
             return Ok(json!(value));
         }
+
+        self.add_to_dict(packed_object);
         Ok(json!(packed_object))
     }
 
-    fn add_to_dict(&mut self, str_value: &str) {
-        self.dict.insert(self.dict_index, str_value.to_owned());
+    // fn add_to_dict_str(&mut self, str_value: &str) {
+    //     // println!("Index: {}\tValue: {}", self.dict_index, str_value.to_owned());
+    //     self.dict.insert(self.dict_index, json!(str_value.to_owned()));
+    //     self.dict_index += 1;
+    //     if self.dict_index >= (self.max_dict_size + MIN_DICT_INDEX) {
+    //         self.dict_index = MIN_DICT_INDEX;
+    //     }
+    // }
+
+    fn add_to_dict(&mut self, value: &Value) {
+        // println!("Index: {}\tValue: {}", self.dict_index, value.to_owned());
+        self.dict.insert(self.dict_index, value.to_owned());
         self.dict_index += 1;
         if self.dict_index >= (self.max_dict_size + MIN_DICT_INDEX) {
             self.dict_index = MIN_DICT_INDEX;
