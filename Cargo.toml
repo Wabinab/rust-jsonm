@@ -24,4 +24,4 @@ version = "1.0"
 features = ["preserve_order"]
 
 [badges]
-travis-ci = { repository = "andrewnester/rust-jsonm" }
+travis-ci = { repository = "Wabinab/rust-jsonm" }
