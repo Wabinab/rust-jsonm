@@ -1,5 +1,5 @@
 [package]
-name = "jsonm"
+name = "jsonm-bugfixed"
 version = "0.2.1"
 authors = ["Andrew Nester <andrew.nester.dev@gmail.com>", "Wabinab"]
 repository = "https://github.com/Wabinab/rust-jsonm"

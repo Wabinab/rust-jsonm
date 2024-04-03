@@ -30,7 +30,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5adb58558dcd1d786b5f0bd15f3226ee23486e24b7b58304b60f64dc68e62606"
 
 [[package]]
-name = "jsonm"
+name = "jsonm-bugfixed"
 version = "0.2.1"
 dependencies = [
  "regex",
